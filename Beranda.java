@@ -1,147 +1,121 @@
-// src/Beranda.java
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.URL; // Import untuk URL
 
 public class Beranda extends JFrame {
 
     public Beranda() {
-        setTitle("Toko Sembako");
-        setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Beranda"); 
+        setSize(900, 600);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Panel utama dengan latar belakang gambar
-        BackgroundPanel backgroundPanel = new BackgroundPanel("/img/BGberanda.jpg");
-        backgroundPanel.setLayout(new BorderLayout()); // Gunakan BorderLayout untuk menata komponen anak
-        setContentPane(backgroundPanel); // Atur backgroundPanel sebagai content pane utama
+        BackgroundPanel backgroundPanel = new BackgroundPanel("img/BGberanda.jpg");
+        backgroundPanel.setLayout(new BorderLayout());
+        setContentPane(backgroundPanel);
 
-        // Panel konten tengah untuk judul dan tombol
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+
         JPanel panelContent = new JPanel();
-        panelContent.setOpaque(false); // Penting: Buat panel ini transparan agar background terlihat
+        panelContent.setBackground(Color.WHITE);
         panelContent.setLayout(new BoxLayout(panelContent, BoxLayout.Y_AXIS));
-        panelContent.setAlignmentX(Component.CENTER_ALIGNMENT); // Pusatkan secara horizontal dalam BoxLayout
+        panelContent.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        panelContent.setOpaque(true);
+        panelContent.setMaximumSize(new Dimension(400, 300));
 
-        // Label judul "Toko Sembako"
         JLabel titleLabel = new JLabel("Toko Sembako");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Pusatkan label secara horizontal
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER); // Pusatkan teks di dalam label
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 42));
+        titleLabel.setForeground(new Color(50, 50, 50));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Tombol "Yuk, belanja"
         JButton masukButton = new JButton("Yuk, belanja");
-        masukButton.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        masukButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Pusatkan tombol secara horizontal
-        masukButton.setPreferredSize(new Dimension(200, 40)); // Atur ukuran preferensi
-        masukButton.setMaximumSize(new Dimension(200, 40)); // Atur ukuran maksimum (penting untuk BoxLayout)
+        masukButton.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+        masukButton.setPreferredSize(new Dimension(250, 50));
+        masukButton.setMaximumSize(new Dimension(250, 50));
+        masukButton.setBackground(new Color(0, 153, 76));
+        masukButton.setForeground(Color.WHITE);
+        masukButton.setFocusPainted(false);
+        masukButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        masukButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Tambahkan ActionListener untuk tombol "Yuk, belanja"
         masukButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Panggil halaman utama pelanggan dan tutup frame saat ini
-                // Pastikan kelas HalamanUtamaPelanggan sudah ada dan dapat diinisialisasi
-                new HalamanUtamaPelanggan().setVisible(true); // Tampilkan halaman baru
-                dispose(); // Tutup frame Beranda saat ini
+                new HalamanUtamaPelanggan();
+                dispose();
             }
         });
 
-        // Tambahkan komponen ke panel konten tengah dengan spasi vertikal
-        panelContent.add(Box.createVerticalGlue()); // Spasi fleksibel di atas
         panelContent.add(titleLabel);
-        panelContent.add(Box.createRigidArea(new Dimension(0, 30))); // Spasi tetap 30px
+        panelContent.add(Box.createRigidArea(new Dimension(0, 30)));
         panelContent.add(masukButton);
-        panelContent.add(Box.createVerticalGlue()); // Spasi fleksibel di bawah
 
-        // Tambahkan panel konten tengah ke backgroundPanel di posisi CENTER
-        backgroundPanel.add(panelContent, BorderLayout.CENTER);
+        wrapper.add(panelContent);
+        backgroundPanel.add(wrapper, BorderLayout.CENTER);
 
-        // Panel untuk logo admin di pojok kanan bawah
-        JPanel bottomRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottomRightPanel.setOpaque(false); // Penting: Buat panel ini transparan
-        
-        // Memuat ikon admin dari classpath
-        ImageIcon adminIcon = null;
-        try {
-            URL adminIconUrl = getClass().getResource("/img/iconAdmin.jpg");
-            if (adminIconUrl != null) {
-                adminIcon = new ImageIcon(adminIconUrl);
-            } else {
-                System.err.println("ERROR: Admin icon not found at classpath: /img/iconAdmin.jpg");
-                // Fallback jika ikon tidak ditemukan
-                adminIcon = new ImageIcon(); // Ikon kosong
-            }
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to load admin icon: " + e.getMessage());
-            e.printStackTrace();
-            adminIcon = new ImageIcon(); // Ikon kosong
-        }
+        JPanel bottomRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        bottomRightPanel.setOpaque(false);
 
-        // Buat tombol admin dengan ikon
+        ImageIcon adminIcon = new ImageIcon("img/iconAdmin.jpg");
         JButton adminButton = new JButton(adminIcon);
-        adminButton.setPreferredSize(new Dimension(40, 40)); // Atur ukuran tombol
-        adminButton.setContentAreaFilled(false); // Buat area konten tombol transparan
-        adminButton.setBorderPainted(false); // Sembunyikan border tombol
-        adminButton.setFocusPainted(false); // Sembunyikan fokus saat diklik
-        adminButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Ubah kursor saat dihover
+        adminButton.setPreferredSize(new Dimension(50, 50));
+        adminButton.setContentAreaFilled(false);
+        adminButton.setBorderPainted(false);
+        adminButton.setFocusPainted(false);
+        adminButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Tambahkan ActionListener untuk tombol admin
+        adminButton.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                adminButton.setContentAreaFilled(true);
+                adminButton.setBackground(new Color(200, 200, 200, 100));
+            }
+
+            public void mouseExited(MouseEvent e) {
+                adminButton.setContentAreaFilled(false);
+            }
+        });
+
         adminButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Panggil form login admin dan tutup frame saat ini
-                // Pastikan kelas LoginAdmin sudah ada dan dapat diinisialisasi
-                new LoginAdmin().setVisible(true); // Tampilkan halaman login admin
-                dispose(); // Tutup frame Beranda saat ini
+                new LoginAdmin();
+                dispose();
             }
         });
 
-        bottomRightPanel.add(adminButton); // Tambahkan tombol admin ke panel kanan bawah
-        backgroundPanel.add(bottomRightPanel, BorderLayout.SOUTH); // Tambahkan panel kanan bawah ke backgroundPanel
-
-        setVisible(true); // Jadikan frame terlihat
+        bottomRightPanel.add(adminButton);
+        backgroundPanel.add(bottomRightPanel, BorderLayout.SOUTH);
+        setVisible(true);
     }
 
-    public static void main(String[] args) {
-        // Jalankan GUI di Event Dispatch Thread (EDT) untuk keamanan thread Swing
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new Beranda();
-            }
-        });
-    }
-
-    private static class BackgroundPanel extends JPanel {
+    class BackgroundPanel extends JPanel {
         private Image backgroundImage;
 
         public BackgroundPanel(String imagePath) {
-            setOpaque(false);
-
             try {
-        
-                URL imageUrl = getClass().getResource("/img/BGberanda.jpg");
-
-                if (imageUrl != null) {
-                    backgroundImage = new ImageIcon(getClass().getResource("/img/placeholder.png")).getImage();
-                } else {
-                    System.err.println("ERROR: Background image not found at classpath: " + imagePath);
-                }
+                backgroundImage = new ImageIcon(imagePath).getImage();
             } catch (Exception e) {
-                System.err.println("ERROR: Failed to load background image " + imagePath + ": " + e.getMessage());
-                e.printStackTrace();
+                System.out.println("Gagal memuat gambar: " + imagePath);
             }
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
             if (backgroundImage != null) {
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             } else {
-                g.setColor(new Color(255, 204, 127));
+                g.setColor(Color.LIGHT_GRAY);
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new Beranda();
+            }
+        });
     }
 }

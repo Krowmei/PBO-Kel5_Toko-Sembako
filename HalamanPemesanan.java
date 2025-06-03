@@ -1,44 +1,51 @@
-
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.*;
 import java.util.*;
-import java.net.URL;
-
 
 public class HalamanPemesanan extends JFrame {
     private JComboBox<String> barangComboBox;
     private JTextField hargaField, jumlahField;
-    private JButton tambahButton, cetakStrukButton, resetButton, hapusButton, kembaliButton, bayarCashButton, bayarCashlessButton;
+    private JButton tambahButton, cetakStrukButton, resetButton, hapusButton, kembaliButton, bayarCashButton;
     private JTable tabelBelanja;
     private DefaultTableModel tableModel;
     private JTextArea strukArea;
 
-    private Map<String, Double> daftarBarang = new LinkedHashMap<>();
-    private Map<String, Integer> stokBarang = new HashMap<>();
-    private JFrame HalamanUtama; 
+    private Map<String, Double> daftarBarang = new LinkedHashMap<String, Double>();
+    private Map<String, Integer> stokBarang = new HashMap<String, Integer>();
+    private JFrame HalamanUtama;
 
     public HalamanPemesanan(JFrame halamanUtama) {
         this.HalamanUtama = halamanUtama;
-        setTitle("Toko Sembako");
-        setSize(620, 720);
+        setTitle("Halaman Pemesanan");
+        setSize(630, 660);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
 
-        Color backgroundColor = new Color(245, 250, 255); 
-        BackgroundPanel backgroundPanel = new BackgroundPanel(backgroundColor);
-        backgroundPanel.setLayout(null); 
+        BackgroundPanel backgroundPanel = new BackgroundPanel("img/BGberanda.jpg");
+        backgroundPanel.setLayout(null);
         setContentPane(backgroundPanel);
-        
+
+        JPanel wrapperPanel = new JPanel(null);
+        wrapperPanel.setOpaque(true);
+        wrapperPanel.setBackground(new Color(255, 248, 240));
+        wrapperPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0, 153, 76), 3),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        wrapperPanel.setBounds(20, 20, 580, 580);
+        backgroundPanel.add(wrapperPanel);
 
         loadDataBarang();
 
+        Font labelFont = new Font("Segoe UI", Font.PLAIN, 14);
+        Font buttonFont = new Font("Segoe UI", Font.BOLD, 13);
+
         JLabel labelBarang = new JLabel("Pilih Barang:");
-        barangComboBox = new JComboBox<>(daftarBarang.keySet().toArray(new String[0]));
+        barangComboBox = new JComboBox<String>(daftarBarang.keySet().toArray(new String[0]));
         JLabel labelHarga = new JLabel("Harga:");
         hargaField = new JTextField();
         hargaField.setEditable(false);
@@ -46,13 +53,21 @@ public class HalamanPemesanan extends JFrame {
         jumlahField = new JTextField();
         tambahButton = new JButton("Tambah ke Keranjang");
 
-        labelBarang.setBounds(30, 20, 100, 25);
-        barangComboBox.setBounds(150, 20, 150, 25);
-        labelHarga.setBounds(30, 55, 100, 25);
-        hargaField.setBounds(150, 55, 150, 25);
-        labelJumlah.setBounds(30, 90, 100, 25);
-        jumlahField.setBounds(150, 90, 150, 25);
-        tambahButton.setBounds(150, 125, 180, 30);
+        JComponent[] labels = new JComponent[]{labelBarang, labelHarga, labelJumlah};
+        for (int i = 0; i < labels.length; i++) {
+            labels[i].setFont(labelFont);
+        }
+        tambahButton.setFont(buttonFont);
+        tambahButton.setBackground(new Color(0, 153, 76));
+        tambahButton.setForeground(Color.WHITE);
+
+        labelBarang.setBounds(20, 10, 100, 25);
+        barangComboBox.setBounds(140, 10, 150, 25);
+        labelHarga.setBounds(20, 45, 100, 25);
+        hargaField.setBounds(140, 45, 150, 25);
+        labelJumlah.setBounds(20, 80, 100, 25);
+        jumlahField.setBounds(140, 80, 150, 25);
+        tambahButton.setBounds(140, 115, 180, 30);
 
         tableModel = new DefaultTableModel(new Object[]{"Barang", "Harga", "Jumlah", "Subtotal"}, 0) {
             @Override
@@ -61,44 +76,59 @@ public class HalamanPemesanan extends JFrame {
             }
         };
         tabelBelanja = new JTable(tableModel);
+        tabelBelanja.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabelBelanja.setRowHeight(25);
+        tabelBelanja.setBackground(Color.WHITE);
         JScrollPane scrollPane = new JScrollPane(tabelBelanja);
-        scrollPane.setBounds(30, 170, 540, 150);
+        scrollPane.setBounds(20, 160, 530, 150);
 
         cetakStrukButton = new JButton("Cetak Struk");
         resetButton = new JButton("Reset");
         hapusButton = new JButton("Hapus Baris");
         kembaliButton = new JButton("Kembali");
         bayarCashButton = new JButton("Bayar Cash");
-        bayarCashlessButton = new JButton("Bayar Cashless");
 
-        cetakStrukButton.setBounds(30, 330, 120, 30);
-        resetButton.setBounds(160, 330, 100, 30);
-        hapusButton.setBounds(270, 330, 120, 30);
-        kembaliButton.setBounds(410, 330, 120, 30);
-        bayarCashButton.setBounds(170, 580, 260, 35);
+        JButton[] tombol = {cetakStrukButton, resetButton, hapusButton, kembaliButton, bayarCashButton};
+        for (int i = 0; i < tombol.length; i++) {
+            tombol[i].setFont(buttonFont);
+            tombol[i].setBackground(new Color(0, 153, 76));
+            tombol[i].setForeground(Color.WHITE);
+        }
+
+        cetakStrukButton.setBounds(20, 320, 120, 30);
+        resetButton.setBounds(150, 320, 100, 30);
+        hapusButton.setBounds(260, 320, 120, 30);
+        kembaliButton.setBounds(390, 320, 120, 30);
 
         strukArea = new JTextArea();
+        strukArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        strukArea.setBackground(new Color(255, 255, 240));
         strukArea.setEditable(false);
         JScrollPane strukScroll = new JScrollPane(strukArea);
-        strukScroll.setBounds(30, 370, 540, 200);
-        backgroundPanel.add(labelBarang); backgroundPanel.add(barangComboBox);
-        backgroundPanel.add(labelHarga); backgroundPanel.add(hargaField);
-        backgroundPanel.add(labelJumlah); backgroundPanel.add(jumlahField);
-        backgroundPanel.add(tambahButton); backgroundPanel.add(scrollPane);
-        backgroundPanel.add(cetakStrukButton); backgroundPanel.add(resetButton);
-        backgroundPanel.add(hapusButton); backgroundPanel.add(kembaliButton);
-        backgroundPanel.add(bayarCashButton);
-        backgroundPanel.add(strukScroll);
+        strukScroll.setBounds(20, 360, 530, 160);
+
+        bayarCashButton.setBounds(160, 530, 240, 35);
+
+        wrapperPanel.add(labelBarang);
+        wrapperPanel.add(barangComboBox);
+        wrapperPanel.add(labelHarga);
+        wrapperPanel.add(hargaField);
+        wrapperPanel.add(labelJumlah);
+        wrapperPanel.add(jumlahField);
+        wrapperPanel.add(tambahButton);
+        wrapperPanel.add(scrollPane);
+        wrapperPanel.add(cetakStrukButton);
+        wrapperPanel.add(resetButton);
+        wrapperPanel.add(hapusButton);
+        wrapperPanel.add(kembaliButton);
+        wrapperPanel.add(bayarCashButton);
+        wrapperPanel.add(strukScroll);
 
         barangComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String barang = (String) barangComboBox.getSelectedItem();
-                if (barang != null && daftarBarang.containsKey(barang)) {
-                    hargaField.setText(String.valueOf(daftarBarang.get(barang)));
-                } else {
-                    hargaField.setText("");
-                }
+                hargaField.setText(String.valueOf(daftarBarang.get(barang)));
             }
         });
 
@@ -106,25 +136,15 @@ public class HalamanPemesanan extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String barang = (String) barangComboBox.getSelectedItem();
-                if (barang == null || !daftarBarang.containsKey(barang)) {
-                    JOptionPane.showMessageDialog(HalamanPemesanan.this, "Pilih barang terlebih dahulu.");
-                    return;
-                }
-                
                 double harga = daftarBarang.get(barang);
                 int jumlah;
                 try {
                     jumlah = Integer.parseInt(jumlahField.getText());
-                    if (jumlah <= 0) {
-                        JOptionPane.showMessageDialog(HalamanPemesanan.this, "Jumlah harus lebih dari 0.");
-                        return;
-                    }
-                    if (jumlah > stokBarang.get(barang)) {
-                        JOptionPane.showMessageDialog(HalamanPemesanan.this, "Stok " + barang + " tidak cukup. Stok tersedia: " + stokBarang.get(barang));
-                        return;
+                    if (jumlah <= 0 || jumlah > stokBarang.get(barang)) {
+                        throw new NumberFormatException();
                     }
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(HalamanPemesanan.this, "Jumlah tidak valid.");
+                    JOptionPane.showMessageDialog(HalamanPemesanan.this, "Jumlah tidak valid atau stok tidak cukup.");
                     return;
                 }
                 double subtotal = harga * jumlah;
@@ -136,7 +156,7 @@ public class HalamanPemesanan extends JFrame {
         cetakStrukButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                tampilkanStruk("PREVIEW", "BELUM DIBAYAR", null);
+                tampilkanStruk("PREVIEW", "LUNAS", null);
             }
         });
 
@@ -146,9 +166,6 @@ public class HalamanPemesanan extends JFrame {
                 tableModel.setRowCount(0);
                 strukArea.setText("");
                 jumlahField.setText("");
-                if (barangComboBox.getItemCount() > 0) {
-                    barangComboBox.setSelectedIndex(0);
-                }
             }
         });
 
@@ -159,7 +176,7 @@ public class HalamanPemesanan extends JFrame {
                 if (selectedRow != -1) {
                     tableModel.removeRow(selectedRow);
                 } else {
-                    JOptionPane.showMessageDialog(HalamanPemesanan.this, "Pilih baris yang ingin dihapus.");
+                    JOptionPane.showMessageDialog(HalamanPemesanan.this, "Pilih baris yang ingin dihapus");
                 }
             }
         });
@@ -167,7 +184,9 @@ public class HalamanPemesanan extends JFrame {
         kembaliButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HalamanUtama.setVisible(true);
+                if (HalamanUtama != null) {
+                    HalamanUtama.setVisible(true);
+                }
                 dispose();
             }
         });
@@ -179,52 +198,25 @@ public class HalamanPemesanan extends JFrame {
             }
         });
 
-
         tableModel.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
                 if (e.getColumn() == 2 && e.getType() == TableModelEvent.UPDATE) {
                     int row = e.getFirstRow();
-                    if (row >= 0 && row < tableModel.getRowCount()) {
-                        try {
-                            String barangNama = tableModel.getValueAt(row, 0).toString();
-                            double harga = Double.parseDouble(tableModel.getValueAt(row, 1).toString());
-                            int jumlahBaru = Integer.parseInt(tableModel.getValueAt(row, 2).toString());
-
-                            if (jumlahBaru <= 0) {
-                                JOptionPane.showMessageDialog(HalamanPemesanan.this, "Jumlah tidak valid. Akan dihapus dari keranjang.");
-                                tableModel.removeRow(row);
-                                return;
-                            }
-                            
-                            int stokTersedia = stokBarang.getOrDefault(barangNama, 0);
-                            if (jumlahBaru > stokTersedia) {
-                                JOptionPane.showMessageDialog(HalamanPemesanan.this, "Stok " + barangNama + " tidak cukup. Stok tersedia: " + stokTersedia + ". Jumlah akan disesuaikan.");
-                                tableModel.setValueAt(stokTersedia, row, 2);
-                                jumlahBaru = stokTersedia;
-                            }
-
-                            double subtotal = harga * jumlahBaru;
-                            tableModel.setValueAt(subtotal, row, 3);
-                        } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(HalamanPemesanan.this, "Input jumlah tidak valid.");
-                            tableModel.setValueAt(0, row, 2);
-                        } catch (Exception ex) {
-                            System.err.println("Error updating table row: " + ex.getMessage());
-                            ex.printStackTrace();
-                        }
+                    try {
+                        double harga = Double.parseDouble(tableModel.getValueAt(row, 1).toString());
+                        int jumlah = Integer.parseInt(tableModel.getValueAt(row, 2).toString());
+                        double subtotal = harga * jumlah;
+                        tableModel.setValueAt(subtotal, row, 3);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(HalamanPemesanan.this, "Input jumlah tidak valid");
                     }
                 }
             }
         });
 
-        if (barangComboBox.getItemCount() > 0) {
-            barangComboBox.setSelectedIndex(0);
-            hargaField.setText(String.valueOf(daftarBarang.get(barangComboBox.getSelectedItem())));
-        } else {
-            hargaField.setText("0.0");
-        }
-        
+        barangComboBox.setSelectedIndex(0);
+        hargaField.setText(String.valueOf(daftarBarang.get(barangComboBox.getSelectedItem())));
         setVisible(true);
     }
 
@@ -266,59 +258,54 @@ public class HalamanPemesanan extends JFrame {
         if (konfirmasi == JOptionPane.YES_OPTION) {
             try {
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/toko_sembako", "root", "");
-                
-                // Simpan ke tabel pesanan (tanpa detail barang)
                 PreparedStatement psPesanan = conn.prepareStatement(
                     "INSERT INTO pesanan (kode_pesanan, status, metode_pembayaran) VALUES (?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS
                 );
-                
+
                 psPesanan.setString(1, kode);
                 psPesanan.setString(2, status);
                 psPesanan.setString(3, metode);
                 psPesanan.executeUpdate();
-                
+
                 ResultSet generatedKeys = psPesanan.getGeneratedKeys();
                 int pesananId = 0;
                 if (generatedKeys.next()) {
                     pesananId = generatedKeys.getInt(1);
                 }
-                
-                // Simpan ke tabel detail_pesanan
+
                 PreparedStatement psDetail = conn.prepareStatement(
                     "INSERT INTO detail_pesanan (pesanan_id, nama_barang, harga, jumlah, subtotal) VALUES (?, ?, ?, ?, ?)"
                 );
-                
+
                 for (int i = 0; i < tableModel.getRowCount(); i++) {
                     String barang = tableModel.getValueAt(i, 0).toString();
                     double harga = Double.parseDouble(tableModel.getValueAt(i, 1).toString());
                     int jumlah = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
                     double subtotal = Double.parseDouble(tableModel.getValueAt(i, 3).toString());
-                    
+
                     psDetail.setInt(1, pesananId);
                     psDetail.setString(2, barang);
                     psDetail.setDouble(3, harga);
                     psDetail.setInt(4, jumlah);
                     psDetail.setDouble(5, subtotal);
                     psDetail.addBatch();
-                    
-                    // Kurangi stok barang
+
                     PreparedStatement updateStok = conn.prepareStatement("UPDATE barang SET stok = stok - ? WHERE nama = ?");
                     updateStok.setInt(1, jumlah);
                     updateStok.setString(2, barang);
                     updateStok.executeUpdate();
                 }
-                
+
                 psDetail.executeBatch();
                 conn.close();
-                
+
                 tampilkanStruk(kode, status, total);
                 JOptionPane.showMessageDialog(this, "Pesanan disimpan.\nKode: " + kode);
                 tableModel.setRowCount(0);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Gagal simpan pesanan: " + e.getMessage());
             }
-
         }
     }
 
@@ -345,19 +332,38 @@ public class HalamanPemesanan extends JFrame {
         struk.append("------------------------------\n");
         struk.append(String.format("TOTAL : Rp%.0f\n", total));
         if (!"PREVIEW".equals(kode)) {
-            struk.append(String.format("KODE  : %s\n", kode));
+            struk.append(String.format("KODE  : %s\n", kode));
             struk.append(String.format("STATUS: %s\n", status));
         }
         struk.append("==============================");
         strukArea.setText(struk.toString());
     }
 
+    private static class BackgroundPanel extends JPanel {
+        private Image bgImage;
+
+        public BackgroundPanel(String path) {
+            try {
+                bgImage = new ImageIcon(path).getImage();
+            } catch (Exception e) {
+                bgImage = null;
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (bgImage != null) {
+                g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
-                JFrame dummyParent = new JFrame();
-                dummyParent.setVisible(false);
-                new HalamanPemesanan(dummyParent);
+                new HalamanPemesanan(null);
             }
         });
     }

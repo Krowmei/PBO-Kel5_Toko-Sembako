@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.sql.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -12,32 +11,38 @@ public class HalamanAdmin extends JFrame {
     private DefaultTableModel model;
     private JTextField tfNama, tfHarga, tfStok;
     private JLabel lblGambarPath;
-    private String selectedImagePath = "/img/";
     private Connection conn;
 
     public HalamanAdmin() {
-        setTitle("Toko Sembako");
-        setSize(850, 550);
+        setTitle("Halaman Admin");
+        setSize(950, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        Color backgroundColor = new Color(255, 204, 127);
-        BackgroundPanel backgroundPanel = new BackgroundPanel(backgroundColor);
-        backgroundPanel.setLayout(new BorderLayout()); 
-        setContentPane(backgroundPanel);
 
         connectDB();
 
+        BackgroundPanel backgroundPanel = new BackgroundPanel("img/BGberanda.jpg");
+        backgroundPanel.setLayout(new BorderLayout());
+        setContentPane(backgroundPanel);
+
         model = new DefaultTableModel(new Object[]{"ID", "Nama", "Harga", "Stok", "Gambar"}, 0);
+
         table = new JTable(model) {
             public TableCellRenderer getCellRenderer(int row, int column) {
-                if (column == 4) {
-                    return new GambarRenderer();
-                }
+                if (column == 4) return new GambarRenderer();
                 return super.getCellRenderer(row, column);
             }
         };
-        table.setRowHeight(60);
+
+        table.setRowHeight(70);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setForeground(Color.DARK_GRAY);
+        table.setBackground(Color.WHITE);
+
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
         tfNama = new JTextField();
@@ -46,6 +51,18 @@ public class HalamanAdmin extends JFrame {
         JButton btnPilihGambar = new JButton("Pilih Gambar");
         lblGambarPath = new JLabel("Belum ada gambar dipilih");
 
+        Font inputFont = new Font("Segoe UI", Font.PLAIN, 13);
+        for(Component c : new Component[]{tfNama, tfHarga, tfStok, btnPilihGambar}) {
+            c.setFont(inputFont);
+        }
+
+        Color green = new Color(0, 153, 76);
+        btnPilihGambar.setBackground(green);
+        btnPilihGambar.setForeground(Color.WHITE);
+        btnPilihGambar.setFocusPainted(false);
+        btnPilihGambar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        inputPanel.setOpaque(false);
         inputPanel.add(new JLabel("Nama Barang:"));
         inputPanel.add(tfNama);
         inputPanel.add(new JLabel("Harga:"));
@@ -55,24 +72,55 @@ public class HalamanAdmin extends JFrame {
         inputPanel.add(btnPilihGambar);
         inputPanel.add(lblGambarPath);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JPanel contentWrapper = new JPanel();
+        contentWrapper.setLayout(new BoxLayout(contentWrapper, BoxLayout.Y_AXIS));
+        contentWrapper.setBackground(new Color(255, 255, 255, 230));
+        contentWrapper.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(green, 3),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        contentWrapper.add(inputPanel);
+        contentWrapper.add(Box.createVerticalStrut(10));
+        contentWrapper.add(scrollPane);
+        contentWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 500));
+        contentWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel wrapperPanel = new JPanel(new BorderLayout());
+        wrapperPanel.setOpaque(false);
+        wrapperPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        wrapperPanel.add(contentWrapper, BorderLayout.CENTER);
+
+        backgroundPanel.add(wrapperPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        buttonPanel.setOpaque(true);
+        buttonPanel.setBackground(new Color(255, 255, 255, 220));
+
         JButton btnTambah = new JButton("Tambah");
         JButton btnUbah = new JButton("Ubah");
         JButton btnHapus = new JButton("Hapus");
         JButton btnKembali = new JButton("Kembali");
 
-        buttonPanel.add(btnTambah);
-        buttonPanel.add(btnUbah);
-        buttonPanel.add(btnHapus);
-        buttonPanel.add(btnKembali);
+        Font buttonFont = new Font("Segoe UI", Font.BOLD, 14);
+        Dimension btnSize = new Dimension(140, 35);
+
+        for (JButton btn : new JButton[]{btnTambah, btnUbah, btnHapus, btnKembali}) {
+            btn.setFont(buttonFont);
+            btn.setPreferredSize(btnSize);
+            btn.setBackground(green);
+            btn.setForeground(Color.WHITE);
+            btn.setFocusPainted(false);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            buttonPanel.add(btn);
+        }
+
+        backgroundPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         btnPilihGambar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                if (fileChooser.showOpenDialog(HalamanAdmin.this) == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    selectedImagePath = selectedFile.getAbsolutePath();
-                    lblGambarPath.setText(selectedFile.getName());
+                JFileChooser fc = new JFileChooser();
+                if (fc.showOpenDialog(HalamanAdmin.this) == JFileChooser.APPROVE_OPTION) {
+                    lblGambarPath.setText(fc.getSelectedFile().getName());
                 }
             }
         });
@@ -114,16 +162,6 @@ public class HalamanAdmin extends JFrame {
             }
         });
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(inputPanel, BorderLayout.NORTH);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        inputPanel.setBackground(new Color(255, 204, 127));
-        buttonPanel.setBackground(new Color(255, 204, 127));
-        mainPanel.setBackground(new Color(255, 204, 127));
-
-        add(mainPanel);
         loadData();
         setVisible(true);
     }
@@ -142,11 +180,11 @@ public class HalamanAdmin extends JFrame {
              ResultSet rs = stmt.executeQuery("SELECT * FROM barang")) {
             while (rs.next()) {
                 model.addRow(new Object[]{
-                        rs.getInt("id"),
-                        rs.getString("nama"),
-                        rs.getDouble("harga"),
-                        rs.getInt("stok"),
-                        rs.getString("gambar")
+                    rs.getInt("id"),
+                    rs.getString("nama"),
+                    rs.getDouble("harga"),
+                    rs.getInt("stok"),
+                    rs.getString("gambar")
                 });
             }
         } catch (SQLException ex) {
@@ -212,31 +250,23 @@ public class HalamanAdmin extends JFrame {
         tfHarga.setText("");
         tfStok.setText("");
         lblGambarPath.setText("Belum ada gambar dipilih");
-        selectedImagePath = "";
         table.clearSelection();
     }
 
     class GambarRenderer extends DefaultTableCellRenderer {
-    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                   boolean isSelected, boolean hasFocus,
-                                                   int row, int column) {
-        JLabel label = new JLabel();
-        if (value != null && !value.toString().isEmpty()) {
-            // Path absolut sesuai struktur folder Anda
-            String imgPath = System.getProperty("user.dir") + File.separator + "tokoSembako" + File.separator + "img" + File.separator + value.toString();
-            File imgFile = new File(imgPath);
-            if (imgFile.exists()) {
-                ImageIcon icon = new ImageIcon(imgPath);
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            JLabel label = new JLabel();
+            if (value != null && !value.toString().isEmpty()) {
+                ImageIcon icon = new ImageIcon("img/" + value.toString());
                 Image scaledImage = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
                 label.setIcon(new ImageIcon(scaledImage));
-            } else {
-                label.setText("Tidak ada gambar");
             }
+            label.setHorizontalAlignment(JLabel.CENTER);
+            return label;
         }
-        label.setHorizontalAlignment(JLabel.CENTER);
-        return label;
     }
-}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -244,5 +274,25 @@ public class HalamanAdmin extends JFrame {
                 new HalamanAdmin();
             }
         });
+    }
+}
+
+class BackgroundPanel extends JPanel {
+    private Image backgroundImage;
+
+    public BackgroundPanel(String imagePath) {
+        try {
+            backgroundImage = new ImageIcon(imagePath).getImage();
+        } catch (Exception e) {
+            System.out.println("Gagal memuat gambar: " + imagePath);
+        }
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
     }
 }
