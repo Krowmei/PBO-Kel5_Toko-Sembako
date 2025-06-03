@@ -1,155 +1,169 @@
-// src/HalamanUtamaPelanggan.java
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.*;
-import java.net.URL; // Diperlukan untuk Class.getResource()
-
-// Import BackgroundPanel yang sudah direvisi (dengan fill color)
 
 public class HalamanUtamaPelanggan extends JFrame {
+
     private JTable table;
     private DefaultTableModel model;
     private Connection conn;
 
     public HalamanUtamaPelanggan() {
-        setTitle("Toko Sembako");
-        setSize(900, 550);
+        setTitle("Halaman Pelanggan");
+        setSize(950, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
-        Color backgroundColor = new Color(255, 204, 127);
-        BackgroundPanel backgroundPanel = new BackgroundPanel(backgroundColor);
-        backgroundPanel.setLayout(new BorderLayout()); 
+
+        BackgroundPanel backgroundPanel = new BackgroundPanel("img/BGberanda.jpg");
+        backgroundPanel.setLayout(new BorderLayout());
         setContentPane(backgroundPanel);
-        
-        // Koneksi database
+
         connectDB();
 
-        // Model tabel
         model = new DefaultTableModel(new Object[]{"Gambar", "Nama", "Harga", "Stok"}, 0) {
-            @Override
             public Class<?> getColumnClass(int column) {
                 if (column == 0) return ImageIcon.class;
                 return String.class;
             }
 
-            @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
         table = new JTable(model);
-        table.setRowHeight(80);
-        
-        // JScrollPane untuk tabel
+        table.setRowHeight(70);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setForeground(new Color(40, 40, 40));
+        table.setBackground(new Color(255, 255, 255));
+        table.setOpaque(true);
+
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setOpaque(false); // Penting: Buat scrollPane transparan
-        scrollPane.getViewport().setOpaque(false); // Sangat penting: Buat viewport tabel transparan
-                                                  // agar warna backgroundPanel terlihat di balik tabel
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-        // Tombol Pesan
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        tableWrapper.setOpaque(true);
+        tableWrapper.setBackground(new Color(255, 248, 240));
+        tableWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0, 153, 76), 3),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        tableWrapper.add(scrollPane, BorderLayout.CENTER);
+        tableWrapper.setMaximumSize(new Dimension(850, 400));
+
+        JPanel centerPanel = new JPanel();
+        centerPanel.setOpaque(false);
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.add(Box.createVerticalGlue());
+        centerPanel.add(tableWrapper);
+        centerPanel.add(Box.createVerticalGlue());
+
         JButton btnPesan = new JButton("Pesan Sekarang");
-        btnPesan.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnPesan.setPreferredSize(new Dimension(180, 35));
-        btnPesan.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                // Pastikan HalamanPemesanan memiliki konstruktor yang menerima JFrame sebagai argumen
-                new HalamanPemesanan(HalamanUtamaPelanggan.this).setVisible(true); // Tampilkan halaman baru
-            }
-        });
-
-        // Tombol Kembali
         JButton btnKembali = new JButton("Kembali ke Beranda");
-        btnKembali.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        btnKembali.setPreferredSize(new Dimension(180, 35));
-        btnKembali.addActionListener(new ActionListener() {
+
+        Font buttonFont = new Font("Segoe UI", Font.BOLD, 14);
+        Dimension btnSize = new Dimension(180, 35);
+
+        for (JButton btn : new JButton[]{btnPesan, btnKembali}) {
+            btn.setFont(buttonFont);
+            btn.setPreferredSize(btnSize);
+            btn.setBackground(new Color(0, 153, 76));
+            btn.setForeground(Color.WHITE);
+            btn.setFocusPainted(false);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btn.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        }
+
+        btnPesan.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 dispose();
-                new Beranda().setVisible(true); // Tampilkan Beranda
+                new HalamanPemesanan(HalamanUtamaPelanggan.this);
             }
         });
 
-        // Panel bawah untuk tombol
-        JPanel panelBawah = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panelBawah.setOpaque(false); // Penting: Buat panel ini transparan
+        btnKembali.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+                new Beranda();
+            }
+        });
+
+        JPanel panelBawah = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
+        panelBawah.setOpaque(true);
+        panelBawah.setBackground(new Color(255, 255, 255, 220));
         panelBawah.add(btnKembali);
         panelBawah.add(btnPesan);
 
-        // --- Tambahkan komponen GUI ke backgroundPanel ---
-        // Ganti add() yang sebelumnya langsung ke JFrame, menjadi add() ke backgroundPanel
-        backgroundPanel.add(scrollPane, BorderLayout.CENTER);
+        backgroundPanel.add(centerPanel, BorderLayout.CENTER);
         backgroundPanel.add(panelBawah, BorderLayout.SOUTH);
 
-        // Load data dari DB
         loadDataBarang();
+
         setVisible(true);
     }
 
     private void connectDB() {
         try {
-           
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/toko_sembako", "root", "");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal koneksi ke database: " + ex.getMessage(), "Error Koneksi", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(); // Cetak stack trace untuk debugging
+            JOptionPane.showMessageDialog(this, "Gagal koneksi ke database: " + ex.getMessage());
         }
     }
 
     private void loadDataBarang() {
-        model.setRowCount(0); // Bersihkan baris yang ada di tabel
-        if (conn == null) { // Pastikan koneksi tidak null
-            JOptionPane.showMessageDialog(this, "Koneksi database belum terjalin.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
+        model.setRowCount(0);
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT nama, harga, stok, gambar FROM barang")) { // Ambil juga kolom gambar
+             ResultSet rs = stmt.executeQuery("SELECT * FROM barang")) {
+
             while (rs.next()) {
                 String nama = rs.getString("nama");
-                String harga = String.valueOf(rs.getDouble("harga"));
+                String harga = String.format("%.2f", rs.getDouble("harga"));
                 String stok = String.valueOf(rs.getInt("stok"));
-                String gambarFileName = rs.getString("gambar"); // Nama file gambar dari DB
+                String gambar = rs.getString("gambar");
 
-                ImageIcon icon = null;
-                try {
-                    // Menggunakan Class.getResource() dengan path absolut dari root classpath
-                    URL imageUrl = getClass().getResource("/img/" + gambarFileName);
-                    if (imageUrl != null) {
-                        icon = new ImageIcon(imageUrl);
-                    } else {
-                        System.err.println("Gambar tidak ditemukan: /img/" + gambarFileName);
-                        icon = new ImageIcon(); // Ikon kosong sebagai fallback
-                    }
-                } catch (Exception e) {
-                    System.err.println("Terjadi kesalahan saat memuat gambar " + gambarFileName + ": " + e.getMessage());
-                    icon = new ImageIcon(); // Ikon kosong jika ada error lain
-                }
-
-                // Penskalaan gambar
+                ImageIcon icon = new ImageIcon("img/" + gambar);
                 Image image = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
                 model.addRow(new Object[]{new ImageIcon(image), nama, harga, stok});
             }
+
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal load data barang: " + ex.getMessage(), "Error Load Data", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(); // Cetak stack trace untuk debugging
-        } finally {
-            // Pastikan koneksi ditutup setelah selesai menggunakan
+            JOptionPane.showMessageDialog(this, "Gagal load data barang: " + ex.getMessage());
+        }
+    }
+
+    class BackgroundPanel extends JPanel {
+        private Image backgroundImage;
+
+        public BackgroundPanel(String imagePath) {
             try {
-                if (conn != null && !conn.isClosed()) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+                backgroundImage = new ImageIcon(imagePath).getImage();
+            } catch (Exception e) {
+                System.out.println("Gagal memuat gambar: " + imagePath);
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            } else {
+                g.setColor(Color.LIGHT_GRAY);
+                g.fillRect(0, 0, getWidth(), getHeight());
             }
         }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new HalamanUtamaPelanggan();
             }

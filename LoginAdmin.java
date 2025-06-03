@@ -6,53 +6,85 @@ import java.sql.*;
 public class LoginAdmin extends JFrame {
 
     public LoginAdmin() {
-        setTitle("Toko Sembako");
-        setSize(400, 300);
+        setTitle("Halaman Login Admin");
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
-        panel.setBackground(new Color(255, 204, 127)); // Warna background panel login
-        add(panel);
+        BackgroundPanel backgroundPanel = new BackgroundPanel("img/BGberanda.jpg");
+        backgroundPanel.setLayout(new GridBagLayout());
+        setContentPane(backgroundPanel);
+
+        JPanel loginWrapper = new JPanel(new GridBagLayout());
+        loginWrapper.setBackground(new Color(255, 248, 240));
+        loginWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0, 153, 76), 3),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel labelUsername = new JLabel("Username:");
+        JLabel labelTitle = new JLabel("LOGIN ADMIN");
+        labelTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        labelTitle.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(labelUsername, gbc);
+        gbc.gridwidth = 2;
+        loginWrapper.add(labelTitle, gbc);
+
+        JLabel labelUsername = new JLabel("Username:");
+        labelUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        loginWrapper.add(labelUsername, gbc);
 
         final JTextField fieldUsername = new JTextField(20);
         gbc.gridx = 1;
-        panel.add(fieldUsername, gbc);
+        loginWrapper.add(fieldUsername, gbc);
 
         JLabel labelPassword = new JLabel("Password:");
+        labelPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(labelPassword, gbc);
+        gbc.gridy = 2;
+        loginWrapper.add(labelPassword, gbc);
 
         final JPasswordField fieldPassword = new JPasswordField(20);
         gbc.gridx = 1;
-        panel.add(fieldPassword, gbc);
+        loginWrapper.add(fieldPassword, gbc);
 
         JButton loginButton = new JButton("Login");
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(loginButton, gbc);
-
         JButton backButton = new JButton("Kembali ke Beranda");
-        gbc.gridy = 3;
-        panel.add(backButton, gbc);
 
         final JLabel statusLabel = new JLabel("");
+        statusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        statusLabel.setForeground(Color.RED);
+
+        Font buttonFont = new Font("Segoe UI", Font.BOLD, 13);
+        Color buttonColor = new Color(0, 153, 76);
+
+        JButton[] buttons = { loginButton, backButton };
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setFont(buttonFont);
+            buttons[i].setBackground(buttonColor);
+            buttons[i].setForeground(Color.WHITE);
+            buttons[i].setFocusPainted(false);
+        }
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        loginWrapper.add(loginButton, gbc);
+
         gbc.gridy = 4;
-        panel.add(statusLabel, gbc);
+        loginWrapper.add(backButton, gbc);
+
+        gbc.gridy = 5;
+        loginWrapper.add(statusLabel, gbc);
+
+        backgroundPanel.add(loginWrapper);
 
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -95,7 +127,31 @@ public class LoginAdmin extends JFrame {
         setVisible(true);
     }
 
+    private static class BackgroundPanel extends JPanel {
+        private Image bgImage;
+
+        public BackgroundPanel(String path) {
+            try {
+                bgImage = new ImageIcon(path).getImage();
+            } catch (Exception e) {
+                bgImage = null;
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (bgImage != null) {
+                g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginAdmin());
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new LoginAdmin();
+            }
+        });
     }
 }
